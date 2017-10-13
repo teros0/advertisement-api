@@ -31,22 +31,17 @@ func main() {
 	funcFlag := flag.String("function", "set", "function to call")
 	urlFlag := flag.String("url", "http://localhost:8080/api/adv/set/", "url to call")
 	filesFlag := flag.String("files", "[]", "files to send")
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
 	flag.Parse()
 	switch *funcFlag {
 	case "set":
-		doSet(*urlFlag, *filesFlag, client)
+		doSet(*urlFlag, *filesFlag)
 	case "get":
-		doGet("http://localhost:8080/api/adv/get/", client)
+		doGet(*urlFlag)
 	}
-
 }
 
-func doSet(url, files string, client *http.Client) {
+func doSet(url, files string) {
 	var entries []FileEntry
-	//fileNames := make([]string, 15)
 	var fileNames []string
 	if err := json.Unmarshal([]byte(files), &fileNames); err != nil {
 		fmt.Println(err)
@@ -89,9 +84,8 @@ func doSet(url, files string, client *http.Client) {
 		log.Println(err)
 		return
 	}
-	_, err = fmt.Println("Buffer length: ", buf.Len())
-	if err != nil {
-		fmt.Println(err)
+	client := &http.Client{
+		Timeout: 10 * time.Second,
 	}
 	req, err := http.NewRequest("POST", url, &buf)
 	if err != nil {
@@ -104,11 +98,15 @@ func doSet(url, files string, client *http.Client) {
 	fmt.Println(res.Status, "SENT REQ")
 }
 
-func doGet(url string, client *http.Client) {
+func doGet(url string) {
 	var JSONResp JResp
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	req.Header.Set("Token", Token)
 	resp, err := client.Do(req)

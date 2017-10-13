@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/gorilla/mux"
@@ -16,6 +17,11 @@ import (
 type JResp struct {
 	Hash  string   `json:"hash"`
 	Files []string `json:"file"`
+}
+
+type FileEntry struct {
+	Filename  string `json:"filename"`
+	Content64 string `json:"file"`
 }
 
 func main() {
@@ -31,12 +37,11 @@ func isAuthorized(r *http.Request) (auth bool, err error) {
 	url := "http://localhost:8000/api/auth/ver-token/"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println(err)
+		return false, nil
 	}
 	req.Header.Set("Token", token)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
 		return false, err
 	}
 	if resp.StatusCode != 200 {
@@ -93,6 +98,9 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+
+	os.RemoveAll("./static/images")
+	os.Mkdir("./static/images", 0744)
 
 	var entries []FileEntry
 	picsDir, err := filepath.Abs("./static/images")
