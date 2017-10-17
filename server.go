@@ -163,6 +163,7 @@ func makeHash(files []os.FileInfo, picsDir string) (string, error) {
 			return "", err
 		}
 		allFiles = append(allFiles, fileBytes...)
+		fmt.Println("files as bytes: ", allFiles)
 	}
 	byteHash := md5.Sum(allFiles)
 	hash := hex.EncodeToString(byteHash[:])

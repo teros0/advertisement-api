@@ -43,6 +43,8 @@ func main() {
 			*urlFlag = "http://localhost:8080/api/adv/get/"
 		}
 		doGet(*urlFlag)
+	default:
+		fmt.Println("Choose an existing function, get or set")
 	}
 }
 
