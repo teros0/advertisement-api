@@ -2,7 +2,9 @@ package main
 
 import (
 	"compress/gzip"
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -37,12 +39,12 @@ func isAuthorized(r *http.Request) (auth bool, err error) {
 	url := "http://localhost:8000/api/auth/ver-token/"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return false, nil
+		return false, fmt.Errorf("Error while creating request for auth %s", err)
 	}
 	req.Header.Set("Token", token)
 	resp, err := client.Do(req)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("Error while making request for auth %s", err)
 	}
 	if resp.StatusCode != 200 {
 		return false, nil
@@ -54,19 +56,19 @@ func GetAdv(w http.ResponseWriter, r *http.Request) {
 	authorized, err := isAuthorized(r)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println(err)
+		log.Printf("can't authorize %s", err)
 		return
 	}
 	if authorized == false {
 		http.Error(w, "Authorization required", http.StatusUnauthorized)
-		log.Println(err)
+		log.Printf("user wasn't authorized %s", err)
 		return
 	}
 
 	workDir, err := filepath.Abs(".")
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println(err)
+		log.Printf("Error while getting absolute path %s", err)
 		return
 	}
 	var resp JResp
@@ -74,14 +76,14 @@ func GetAdv(w http.ResponseWriter, r *http.Request) {
 	pics, err := ioutil.ReadDir(picsDir)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println(err)
+		log.Printf("Error while reading pictures directory %s", err)
 		return
 	}
 	for _, fileInfo := range pics {
 		picPath := filepath.Join(picsDir, fileInfo.Name())
 		resp.Files = append(resp.Files, picPath)
 	}
-	resp.Hash = "YET TO IMPLEMENT"
+	resp.Hash, err = makeHash(pics, picsDir)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
@@ -90,12 +92,12 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 	authorized, err := isAuthorized(r)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println(err)
+		log.Println("can't authorize %s", err)
 		return
 	}
 	if authorized == false {
 		http.Error(w, "Authorization required", http.StatusUnauthorized)
-		log.Println(err)
+		log.Println("user wasn't authorized %s", err)
 		return
 	}
 
@@ -106,7 +108,7 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 	picsDir, err := filepath.Abs("./static/images")
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println(err)
+		log.Printf("can't get absolute path in SetAdv %s", err)
 		return
 	}
 
@@ -120,7 +122,7 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(re)
 	if err = decoder.Decode(&entries); err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println("Decode error", err)
+		log.Printf("can't decode json file in SetAdv %s", err)
 		return
 	}
 
@@ -130,9 +132,30 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 		content, err := base64.StdEncoding.DecodeString(entry.Content64)
 		if err != nil {
 			http.Error(w, "Internal service problems", http.StatusInternalServerError)
-			log.Println(err)
+			log.Printf("error while encoding to base64 in SetAdv %s", err)
 			return
 		}
 		ioutil.WriteFile(path, content, 0744)
 	}
+}
+
+func makeHash(files []os.FileInfo, picsDir string) (string, error) {
+	var allFiles []byte
+	for _, file := range files {
+		picPath := filepath.Join(picsDir, file.Name())
+		content, err := os.Open(picPath)
+		if err != nil {
+			log.Printf("can't open file %s for hashing", picPath)
+			return "", err
+		}
+		fileBytes, err := ioutil.ReadAll(content)
+		if err != nil {
+			log.Printf("can't read file %s for hashing", picPath)
+			return "", err
+		}
+		allFiles = append(allFiles, fileBytes...)
+	}
+	byteHash := md5.Sum(allFiles)
+	hash := hex.EncodeToString(byteHash[:])
+	return hash, nil
 }
