@@ -95,17 +95,14 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 	authorized, err := isAuthorized(r)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Println("can't authorize %s", err)
+		log.Printf("can't authorize %s", err)
 		return
 	}
 	if authorized == false {
 		http.Error(w, "Authorization required", http.StatusUnauthorized)
-		log.Println("user wasn't authorized %s", err)
+		log.Printf("user wasn't authorized %s", err)
 		return
 	}
-
-	os.RemoveAll("./static/images")
-	os.Mkdir("./static/images", 0744)
 
 	var entries []FileEntry
 	picsDir, err := filepath.Abs("./static/images")
@@ -129,7 +126,16 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("%+v", entries)
+	if len(entries) == 0 {
+		http.Error(w, "Specify at least one picture", http.StatusBadRequest)
+		log.Printf("Agent tried to add 0 pictures")
+		return
+	}
+
+	os.RemoveAll("./static/images")
+	os.Mkdir("./static/images", 0744)
+
+	fmt.Printf("Entries: %+v, Len of Entries %d", entries, len(entries))
 	for _, entry := range entries {
 		path := filepath.Join(picsDir, entry.Filename)
 		content, err := base64.StdEncoding.DecodeString(entry.Content64)
