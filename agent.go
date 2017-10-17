@@ -46,6 +46,9 @@ func main() {
 	}
 }
 
+// Отсылает в /api/adv/set контент файлов, указанных в флаге -files.
+// Файлы должны хранится в папке static/imagesSend, их имена и содержимое (в base64)
+// отсылаются как json, который архивируется с помощью gzip
 func doSet(url, files string) {
 	var entries []FileEntry
 	var fileNames []string
@@ -101,6 +104,7 @@ func doSet(url, files string) {
 	fmt.Println(res.Status, "SENT REQ")
 }
 
+// doGet - делает запрос к api/adv/get, получает список картинок, которые хранятся на сервере и их хеш
 func doGet(url string) {
 	var JSONResp JResp
 	client := &http.Client{

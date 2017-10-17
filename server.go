@@ -52,6 +52,7 @@ func isAuthorized(r *http.Request) (auth bool, err error) {
 	return true, nil
 }
 
+// GetAdv отправляет клиенту json, в котором указан список файлов в папке static/images и их хеш
 func GetAdv(w http.ResponseWriter, r *http.Request) {
 	authorized, err := isAuthorized(r)
 	if err != nil {
@@ -88,6 +89,8 @@ func GetAdv(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+// SetAdv - получает gzip json, в котором указаны имена и тела файлов, закодированных в base64
+// проводит раскодирование и записывает полученные файлы в static/images, удаляя старое содержимое
 func SetAdv(w http.ResponseWriter, r *http.Request) {
 	authorized, err := isAuthorized(r)
 	if err != nil {
