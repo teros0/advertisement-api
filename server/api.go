@@ -3,7 +3,6 @@ package main
 import (
 	"compress/gzip"
 	"crypto/md5"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -12,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -29,8 +27,8 @@ type FileEntry struct {
 
 func startServer(address string) {
 	router := mux.NewRouter()
-	router.HandleFunc("/api/adv/get/", GetAdv).Methods("GET")
-	router.HandleFunc("/api/adv/set/", SetAdv).Methods("POST")
+	router.HandleFunc("/api/adv/get/", authHandler(GetAdv)).Methods("GET")
+	router.HandleFunc("/api/adv/set/", authHandler(SetAdv)).Methods("POST")
 	log.Fatal(http.ListenAndServe(address, router))
 }
 
@@ -53,45 +51,57 @@ func isAuthorized(r *http.Request) (auth bool, err error) {
 	return true, nil
 }
 
+func authHandler(f func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		authorized, err := isAuthorized(r)
+		if err != nil {
+			http.Error(w, "Internal service problems", http.StatusInternalServerError)
+			log.Printf("can't authorize %s", err)
+			return
+		}
+		if authorized == false {
+			http.Error(w, "Authorization required", http.StatusUnauthorized)
+			log.Printf("user wasn't authorized %s", err)
+			return
+		}
+		f(w, r)
+	}
+}
+
 // GetAdv отправляет клиенту json, в котором указан список файлов в папке static/images и их хеш
 func GetAdv(w http.ResponseWriter, r *http.Request) {
-	authorized, err := isAuthorized(r)
-	if err != nil {
-		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Printf("can't authorize %s", err)
-		return
-	}
-	if authorized == false {
-		http.Error(w, "Authorization required", http.StatusUnauthorized)
-		log.Printf("user wasn't authorized %s", err)
-		return
-	}
-
+	var resp JResp
+	var lastFolderPath string
 	picsDir, err := filepath.Abs(Config.ImagesRoot)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
 		log.Printf("Error while getting absolute path %s", err)
 		return
 	}
-	var resp JResp
 	folders, err := ioutil.ReadDir(Config.ImagesRoot)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
 		log.Printf("Error while reading pictures directory %s", err)
 		return
 	}
-	lastFolder := filepath.Join(picsDir, folders[len(folders)-1].Name())
-	pics, err := ioutil.ReadDir(lastFolder)
+	lastFolder := folders[len(folders)-1]
+	if lastFolder.Name() == "temp" {
+		lastFolderPath = filepath.Join(picsDir, folders[len(folders)-2].Name())
+	} else {
+		lastFolderPath = filepath.Join(picsDir, folders[len(folders)-1].Name())
+	}
+	pics, err := ioutil.ReadDir(lastFolderPath)
 	if err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
 		log.Printf("Error while reading pictures directory %s", err)
 		return
 	}
 	for _, fileInfo := range pics {
-		picPath := filepath.Join(lastFolder, fileInfo.Name())
+		picPath := filepath.Join(lastFolderPath, fileInfo.Name())
 		resp.Files = append(resp.Files, picPath)
 	}
-	resp.Hash, err = makeHash(pics, lastFolder)
+	resp.Hash, err = makeHash(pics, lastFolderPath)
+	fmt.Println("HASH CONT: ", resp.Hash, resp.Files)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
@@ -101,17 +111,6 @@ func GetAdv(w http.ResponseWriter, r *http.Request) {
 func SetAdv(w http.ResponseWriter, r *http.Request) {
 	var entries []FileEntry
 
-	authorized, err := isAuthorized(r)
-	if err != nil {
-		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Printf("can't authorize %s", err)
-		return
-	}
-	if authorized == false {
-		http.Error(w, "Authorization required", http.StatusUnauthorized)
-		log.Printf("user wasn't authorized %s", err)
-		return
-	}
 	re, err := gzip.NewReader(r.Body)
 	if err != nil {
 		log.Println(err)
@@ -124,48 +123,19 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error while handling directories %s", err)
 		return
 	}
+
 	tempDirPath := filepath.Join(Config.ImagesRoot, "/temp/")
-	if err = os.Mkdir(tempDirPath, 0744); err != nil {
+	if err = writeToTemp(&entries, tempDirPath); err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
 		log.Printf("Error while handling directories %s", err)
 		return
 	}
-	for _, entry := range entries {
-		path := filepath.Join(tempDirPath, entry.Filename)
-		content, err := base64.StdEncoding.DecodeString(entry.Content64)
-		if err != nil {
-			http.Error(w, "Internal service problems", http.StatusInternalServerError)
-			log.Printf("error while encoding to base64 in SetAdv %s", err)
-			return
-		}
-		ioutil.WriteFile(path, content, 0744)
-	}
 
-	if err := handleFolders(&entries); err != nil {
+	if err = handleTemp(&entries); err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
 		log.Printf("can't decode json file in SetAdv %s", err)
 		return
 	}
-}
-
-func handleFolders(entries *[]FileEntry) error {
-	folderContent, err := ioutil.ReadDir(Config.ImagesRoot)
-	if err != nil {
-		return fmt.Errorf("can't read images directory %s", err)
-	}
-	if len(folderContent) >= Config.MaxFolderNum+1 {
-		fmt.Println(len(folderContent))
-		foldPath := filepath.Join(Config.ImagesRoot, folderContent[0].Name())
-		os.RemoveAll(foldPath)
-	}
-	timestamp := time.Now().UTC().Format("2006-01-02 15:04:05.00")
-	newDirPath := filepath.Join(Config.ImagesRoot, timestamp)
-	tempDirPath := filepath.Join(Config.ImagesRoot, "/temp/")
-	err = os.Rename(tempDirPath, newDirPath)
-	if err != nil {
-		return fmt.Errorf("can't read images directory %s", err)
-	}
-	return nil
 }
 
 func makeHash(files []os.FileInfo, lastFolder string) (string, error) {
