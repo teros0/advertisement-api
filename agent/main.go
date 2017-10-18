@@ -45,6 +45,7 @@ func main() {
 		doGet(*urlFlag)
 	default:
 		fmt.Println("Choose an existing function, get or set")
+		log.Fatalln("User tried to use uknown funciton")
 	}
 }
 
@@ -57,8 +58,12 @@ func doSet(url, files string) {
 	if err := json.Unmarshal([]byte(files), &fileNames); err != nil {
 		log.Fatalf("Error while unmarshalling files argument %s", err)
 	}
+	if len(fileNames) == 0 {
+		fmt.Println("Provide at least one filename")
+		log.Fatalln("User tried to set zero pictures")
+	}
 
-	picsDir, err := filepath.Abs("./static/imagesSend")
+	picsDir, err := filepath.Abs("images/")
 	if err != nil {
 		log.Fatalf("Error while getting abs path to pictures %s", err)
 	}

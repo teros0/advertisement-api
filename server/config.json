@@ -1,0 +1,8 @@
+{
+    "imagesRoot":"./images/",
+    "maxFolderNum":3,
+    "authGet":"localhost:8000/api/auth/get-token/",
+    "authVer":"http://localhost:8000/api/auth/ver-token/",
+    "nginxPath":"",
+    "serverAddress":"localhost:8080"
+}
