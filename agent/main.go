@@ -108,7 +108,6 @@ func doSet(url, files string) {
 	if err != nil {
 		log.Fatalf("Error while executing request %s", err)
 	}
-	fmt.Println(res.Status, "SENT REQ")
 }
 
 // doGet - делает запрос к api/adv/get, получает список картинок, которые хранятся на сервере и их хеш

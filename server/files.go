@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func handleTemp(entries *[]FileEntry) error {
 		foldPath := filepath.Join(Config.ImagesRoot, folderContent[0].Name())
 		os.RemoveAll(foldPath)
 	}
-	timestamp := time.Now().UTC().Format("2006-01-02 15:04:05.00")
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 	newDirPath := filepath.Join(Config.ImagesRoot, timestamp)
 	tempDirPath := filepath.Join(Config.ImagesRoot, "/temp/")
 	if err = os.Rename(tempDirPath, newDirPath); err != nil {

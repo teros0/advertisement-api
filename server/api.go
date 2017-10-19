@@ -101,7 +101,6 @@ func GetAdv(w http.ResponseWriter, r *http.Request) {
 		resp.Files = append(resp.Files, picPath)
 	}
 	resp.Hash, err = makeHash(pics, lastFolderPath)
-	fmt.Println("HASH CONT: ", resp.Hash, resp.Files)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
@@ -113,14 +112,15 @@ func SetAdv(w http.ResponseWriter, r *http.Request) {
 
 	re, err := gzip.NewReader(r.Body)
 	if err != nil {
-		log.Println(err)
+		http.Error(w, "Internal service problems", http.StatusInternalServerError)
+		log.Printf("Can't create gzip reader %s", err)
 		return
 	}
 	defer re.Close()
 	decoder := json.NewDecoder(re)
 	if err = decoder.Decode(&entries); err != nil {
 		http.Error(w, "Internal service problems", http.StatusInternalServerError)
-		log.Printf("Error while handling directories %s", err)
+		log.Printf("Can't decode entries json %s", err)
 		return
 	}
 
