@@ -25,7 +25,7 @@ type FileEntry struct {
 	Content64 string `json:"file"`
 }
 
-const Token = "1token"
+const Token = "wwXCklLJOX9vboZkLOu7X"
 
 func main() {
 	funcFlag := flag.String("function", "set", "function to call")
@@ -49,7 +49,7 @@ func main() {
 	}
 }
 
-// Отсылает в /api/adv/set контент файлов, указанных в флаге -files.
+// Отсылает на /api/adv/set контент файлов, указанных в флаге -files.
 // Файлы должны хранится в папке static/imagesSend, их имена и содержимое (в base64)
 // отсылаются как json, который архивируется с помощью gzip
 func doSet(url, files string) {
@@ -104,7 +104,7 @@ func doSet(url, files string) {
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Token", Token)
-	res, err := client.Do(req)
+	_, err = client.Do(req)
 	if err != nil {
 		log.Fatalf("Error while executing request %s", err)
 	}

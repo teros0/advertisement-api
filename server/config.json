@@ -1,8 +1,11 @@
 {
-    "imagesRoot":"./images/",
-    "maxFolderNum":3,
-    "authGet":"localhost:8000/api/auth/get-token/",
-    "authVer":"http://localhost:8000/api/auth/ver-token/",
-    "nginxPath":"",
-    "serverAddress":"localhost:8080"
+    "images_folder":"./images/",
+    "folder_num_max":3,
+    "get_token_url":"http://test-spho.pharmbase.com.ua/spauth/verify",
+    "verify_token_url":"http://test-spho.pharmbase.com.ua/spauth/token",
+    "server_address":":8080",
+    "server_url": "haha://pharmbase/files/",
+    "log_max_size": 5,
+    "log_max_age": 5,
+    "log_max_backups": 5
 }
