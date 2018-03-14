@@ -25,7 +25,7 @@ type FileEntry struct {
 	Content64 string `json:"file"`
 }
 
-const Token = "wwXCklLJOX9vboZkLOu7X"
+const Token = "PY5r1ouOZiqRUldWj0W7v"
 
 func main() {
 	funcFlag := flag.String("function", "set", "function to call")
@@ -35,12 +35,12 @@ func main() {
 	switch *funcFlag {
 	case "set":
 		if *urlFlag == "" {
-			*urlFlag = "http://localhost:8080/api/adv/set/"
+			*urlFlag = "http://localhost:8080/api/set-adv"
 		}
 		doSet(*urlFlag, *filesFlag)
 	case "get":
 		if *urlFlag == "" {
-			*urlFlag = "http://localhost:8080/api/adv/get/"
+			*urlFlag = "http://localhost:8080/api/get-adv"
 		}
 		doGet(*urlFlag)
 	default:
@@ -55,6 +55,7 @@ func main() {
 func doSet(url, files string) {
 	var entries []FileEntry
 	var fileNames []string
+	fmt.Printf("TYPE: %T, VALUE: %+v\n", files, files)
 	if err := json.Unmarshal([]byte(files), &fileNames); err != nil {
 		log.Fatalf("Error while unmarshalling files argument %s", err)
 	}

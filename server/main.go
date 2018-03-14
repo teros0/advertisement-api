@@ -16,12 +16,7 @@ func main() {
 	}
 
 	router := http.NewServeMux()
-	//router = api.RegisterRoutes(router)
-
-	GetHandler := http.HandlerFunc(api.GetAdv)
-	SetHandler := http.HandlerFunc(api.SetAdv)
-	router.Handle("/api/get-adv", api.GetRequestMiddle(api.AuthMiddle(GetHandler)))
-	router.Handle("/api/set-adv", api.PostRequestMiddle(api.AuthMiddle(SetHandler)))
+	router = api.RegisterRoutes(router)
 
 	log.Printf("Starting service on %s", conf.ServerAddress)
 	log.Fatal(http.ListenAndServe(conf.ServerAddress, router))

@@ -41,7 +41,6 @@ func InitConfig() error {
 	if err = json.Unmarshal(content, &c); err != nil {
 		return fmt.Errorf("can't unmarshall json %s", err)
 	}
-	fmt.Printf("%+v", c)
 	ImagesFolder = c.ImagesFolder
 	MaxFolderNum = c.MaxFolderNum
 	GetTokenURL = c.GetTokenURL

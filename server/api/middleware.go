@@ -18,7 +18,6 @@ func isAuthorized(r *http.Request) (auth bool, err error) {
 	}
 	req.Header.Set("Token", token)
 	resp, err := client.Do(req)
-	fmt.Println(token)
 	if err != nil {
 		return false, fmt.Errorf("Error while making request for auth %s", err)
 	}

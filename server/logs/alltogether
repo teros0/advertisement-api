@@ -1,0 +1,44 @@
+2018/03/14 13:51:20 Starting service on :8080
+2018/03/14 13:51:33 user wasn't authorized
+2018/03/14 14:30:59 Can't decode entries json gzip: invalid header
+2018/03/14 14:32:39 Can't decode entries json gzip: invalid header
+2018/03/14 14:33:46 Starting service on :8080
+2018/03/14 14:34:30 Bad request method on /api/get-adv
+2018/03/14 14:34:37 Can't decode entries json gzip: invalid header
+2018/03/14 14:39:29 user wasn't authorized
+2018/03/14 15:38:45 Starting service on :8080
+2018/03/14 15:38:45 listen tcp :8080: bind: address already in use
+2018/03/14 15:38:51 Bad request method on /api/get-adv
+2018/03/14 16:04:00 Starting service on :8080
+2018/03/14 16:04:00 listen tcp :8080: bind: address already in use
+2018/03/14 16:05:11 Starting service on :8080
+2018/03/14 16:10:21 Starting service on :8080
+2018/03/14 16:11:20 Starting service on :8080
+2018/03/14 16:11:50 Starting service on :8080
+2018/03/14 16:13:03 Starting service on :8080
+2018/03/14 16:13:49 Starting service on :8080
+2018/03/14 16:14:28 Starting service on :8080
+2018/03/14 16:15:58 Starting service on :8080
+2018/03/14 16:17:29 Starting service on :8080
+2018/03/14 16:19:13 Starting service on :8080
+2018/03/14 16:20:29 user wasn't authorized
+2018/03/14 16:21:28 Starting service on :8080
+2018/03/14 16:21:40 user wasn't authorized
+2018/03/14 16:22:18 Starting service on :8080
+2018/03/14 16:32:41 Starting service on :8080
+2018/03/14 16:33:22 Starting service on :8080
+2018/03/14 16:34:38 Starting service on :8080
+2018/03/14 17:08:41 Starting service on :8080
+2018/03/14 17:13:01 Starting service on :8080
+2018/03/14 17:13:40 Starting service on :8080
+2018/03/14 17:17:58 Starting service on :8080
+2018/03/14 17:23:38 Can't decode entries json gzip: invalid header
+2018/03/14 17:26:45 Can't decode entries json gzip: invalid header
+2018/03/14 17:27:17 Can't decode entries json gzip: invalid header
+2018/03/14 17:28:03 Can't decode entries json gzip: invalid header
+2018/03/14 17:34:35 Can't decode entries json gzip: invalid header
+2018/03/14 17:36:20 Can't decode entries json gzip: invalid header
+2018/03/14 17:41:46 Starting service on :8080
+2018/03/14 17:47:51 Starting service on :8080
+2018/03/14 17:51:00 Starting service on :8080
+2018/03/14 17:52:13 Starting service on :8080

@@ -21,7 +21,7 @@ func writeFiles(entries *[]FileEntry) error {
 		return fmt.Errorf("couldn't get absolute path of images root %s -> %s", imgFolder, err)
 	}
 	tempFolder := filepath.Join(imgFolder, "/temp")
-	if err := os.MkdirAll(tempFolder, 0744); err != nil {
+	if err := os.MkdirAll(tempFolder, 0755); err != nil {
 		return fmt.Errorf("couldn't create directory %s -> %s", tempFolder, err)
 	}
 
@@ -50,6 +50,9 @@ func getFilePaths() ([]string, error) {
 	folders, err := ioutil.ReadDir(picsDir)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read pictures directory %s -> %s", picsDir, err)
+	}
+	if len(folders) == 0 {
+		return []string{}, nil
 	}
 
 	lastFolderName := folders[len(folders)-1].Name()
@@ -81,7 +84,6 @@ func makeHash(paths []string) (string, error) {
 	}
 	for _, p := range paths {
 		picPath := filepath.Join(imgFolder, p)
-		fmt.Println(picPath)
 		if err != nil {
 			return "", fmt.Errorf("couldn't get absolute path of picture %s", err)
 		}
